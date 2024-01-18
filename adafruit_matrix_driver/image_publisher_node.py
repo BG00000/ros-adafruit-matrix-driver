@@ -35,7 +35,7 @@ class ImagePublisherNode(Node):
             image_path = os.path.expanduser('~/Downloads/GR1.png')
 
             # Read the image
-            original_image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+            original_image = cv2.imread(image_path, cv2.IMREAD_COLOR)
 
             if original_image is None:
                 raise FileNotFoundError(f"Failed to load the image from {image_path}")
@@ -43,20 +43,23 @@ class ImagePublisherNode(Node):
             # Resize the image to 32x32
             resized_image = cv2.resize(original_image, (32, 32))
 
-            # Generate dynamic color based on time
-            hue = (rclpy.clock.Clock().now().nanoseconds % 1000000000) / 1000000000.0  # Varies between 0 and 1
-            color = np.array([hue * 255, 255, 255], dtype=np.uint8)
+            # Optionally, you can perform any additional image processing here
+            # For example, set red and blue channels to 0
+            # resized_image[:, :, 0] = 0
+            # resized_image[:, :, 2] = 0
 
-            # Apply color to the image
-            colored_image = resized_image.copy()
-            colored_image[:, :, :3] = color
+            # Create a pulsating effect using a sine function
+            pulsating_factor = 0.5 + 0.5 * math.sin(rclpy.clock.Clock().now().nanoseconds * 1e-9)
+
+            # Apply the pulsating factor to the image
+            pulsating_image = (resized_image * pulsating_factor).astype(np.uint8)
 
             # Convert the OpenCV image to a ROS Image message
-            ros_image_msg = self.cv_bridge.cv2_to_imgmsg(colored_image, encoding='bgra8')
+            ros_image_msg = self.cv_bridge.cv2_to_imgmsg(pulsating_image, encoding='bgr8')
 
             # Publish the ROS Image message
             self.publisher.publish(ros_image_msg)
-            self.get_logger().debug('Published colored image')
+            self.get_logger().debug('Published image')
 
         except Exception as e:
             self.get_logger().error(f'Error publishing image: {str(e)}')
