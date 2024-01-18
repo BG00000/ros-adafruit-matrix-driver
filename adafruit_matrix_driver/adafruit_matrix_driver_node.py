@@ -1,15 +1,16 @@
 # image_subscriber_node.py
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image as ImageMsg
 from cv_bridge import CvBridge
-import cv2
+from rgbmatrix import RGBMatrix, RGBMatrixOptions
+from PIL import Image
 
 class AdafruitMatrixDriverNode(Node):
     def __init__(self):
         super().__init__('adafruit_matrix_driver_node')
         self.subscription = self.create_subscription(
-            Image,
+            ImageMsg,
             'image',
             self.image_callback,
             10  # QoS profile
@@ -17,22 +18,26 @@ class AdafruitMatrixDriverNode(Node):
         self.subscription  # prevent unused variable warning
         self.cv_bridge = CvBridge()
 
-    def image_callback(self, msg: Image):
-        try:
-            # Convert the ROS Image message to a numpy array
-            cv_image = self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        options = RGBMatrixOptions()
+        options.rows = 32
+        options.chain_length = 1
+        options.parallel = 1
+        options.hardware_mapping = 'adafruit-hat'
 
-            # Render the image on the matrix display (replace this with your actual rendering logic)
-            self.render_image(cv_image)
+        self.matrix = RGBMatrix(options = options)
 
-        except Exception as e:
-            self.get_logger().error(f'Error processing image: {str(e)}')
+    def image_callback(self, msg: ImageMsg):
+        # Convert the ROS Image message to a numpy array
+        cv_image = self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        pil_image = Image.fromarray(cv_image)
+
+        # Render the image on the matrix display (replace this with your actual rendering logic)
+        self.render_image(pil_image)
+
 
     def render_image(self, image):
-        # Implement your rendering logic here
-        # For example, display the image using OpenCV
-        cv2.imshow('Image Display', image)
-        cv2.waitKey(1)
+        self.get_logger().debug("Render")
+        self.matrix.SetImage(image)
 
 def main():
     rclpy.init()

@@ -6,9 +6,13 @@ def generate_launch_description():
         Node(
             package='adafruit_matrix_driver',
             executable='adafruit_matrix_driver_node',
+            prefix=["sudo -E env \"PYTHONPATH=$PYTHONPATH\" \"LD_LIBRARY_PATH=$LD_LIBRARY_PATH\" \"PATH=$PATH\" \"USER=$USER\"  bash -c "],
+            shell=True,
         ),
         Node(
             package='adafruit_matrix_driver',
+            prefix=["sudo -E env \"PYTHONPATH=$PYTHONPATH\" \"LD_LIBRARY_PATH=$LD_LIBRARY_PATH\" \"PATH=$PATH\" \"USER=$USER\"  bash -c "],
             executable='image_publisher_node',
+            shell=True,
         )
     ])
