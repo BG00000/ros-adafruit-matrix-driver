@@ -48,8 +48,10 @@ class ImagePublisherNode(Node):
             # resized_image[:, :, 0] = 0
             # resized_image[:, :, 2] = 0
 
-            # Create a pulsating effect using a sine function
-            pulsating_factor = 0.5 + 0.5 * math.sin(rclpy.clock.Clock().now().nanoseconds * 1e-9)
+            # Calculate pulsating factor based on elapsed time
+            elapsed_time = rclpy.clock.Clock().now().nanoseconds * 1e-9
+            pulsating_frequency = 2.0  # Adjust the frequency of the pulsation
+            pulsating_factor = 0.5 + 0.5 * math.sin(elapsed_time * pulsating_frequency)
 
             # Apply the pulsating factor to the image
             pulsating_image = (resized_image * pulsating_factor).astype(np.uint8)
